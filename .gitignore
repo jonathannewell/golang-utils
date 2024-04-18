@@ -19,3 +19,12 @@
 
 # Go workspace file
 go.work
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+.idea
+bin
+
+#MAC OS file created by spotlight - ignore!
+.DS_Store
