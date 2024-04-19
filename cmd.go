@@ -168,3 +168,7 @@ func GetFullCmdName(cmd *cobra.Command) string {
 	}
 	return GetFullCmdName(cmd.Parent()) + "." + cmd.Name()
 }
+
+func InitCommands(initFunction ...func()) {
+	cobra.OnInitialize(initFunction...)
+}
