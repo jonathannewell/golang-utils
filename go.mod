@@ -1,4 +1,4 @@
-module github.com/jonathannewell/golang-utils/v0.0.1
+module github.com/jonathannewell/golang-utils
 
 go 1.21.5
 
