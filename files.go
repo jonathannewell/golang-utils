@@ -225,7 +225,7 @@ func WriteStructsToFile(target any, filename string, path string, createDir bool
 
 	var encoder FileEncoder
 
-	if filepath.Ext(filename) == JSON {
+	if strings.HasSuffix(filepath.Ext(filename), JSON) {
 		e := json.NewEncoder(file)
 		e.SetIndent("", "    ")
 		encoder = FileEncoder(e)
@@ -254,7 +254,7 @@ func WriteStructToFile(target any, filename string, path string) {
 
 	var encoder FileEncoder
 
-	if filepath.Ext(filename) == JSON {
+	if strings.HasSuffix(filepath.Ext(filename), JSON) {
 		e := json.NewEncoder(file)
 		e.SetIndent("", "    ")
 		encoder = FileEncoder(e)
