@@ -27,18 +27,19 @@
  *
  */
 
-package golang_utils
+package app
 
 import (
 	"github.com/apex/log"
 	"github.com/glebarez/sqlite"
+	"github.com/jonathannewell/golang-utils/io"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 type PersistenceContext struct {
 	DB     *gorm.DB //Do I really need this?
-	DBFile *FileInfo
+	DBFile *io.FileInfo
 	config *PersistenceConfig
 }
 
@@ -49,7 +50,7 @@ type PersistenceConfig struct {
 }
 
 func NewPersistenceContext(config *PersistenceConfig) *PersistenceContext {
-	dbFileInfo := NewFileInfo(config.Name, config.Path)
+	dbFileInfo := io.NewFileInfo(config.Name, config.Path)
 	return &PersistenceContext{
 		DBFile: dbFileInfo,
 		config: config,

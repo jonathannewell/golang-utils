@@ -21,50 +21,75 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * Filename: lists.go
- * Last Modified: 11/4/22, 11:34 AM
+ * Filename: templatefuncs.go
+ * Last Modified: 11/17/22, 12:49 PM
  * Modified By: newellj
  *
  *
  */
 
-package golang_utils
+package text
 
 import (
-	"strings"
+	"fmt"
+	"strconv"
 )
 
-type Comparable interface {
-	Compare(value any) bool
+const (
+	QUOTE_FUNC_NAME      = "quote"
+	EMPTY_FUNC_NAME      = "empty"
+	NOT_EMPTY_FUNC_NAME  = "notEmpty"
+	OR_DEFAULT_FUNC_NAME = "orDefault"
+	OR_EMPTY_FUNC_NAME   = "orEmpty"
+	TERNARY_FUNC_NAME    = "ternary"
+)
+
+func Quote(input any) string {
+	switch val := input.(type) {
+	case string:
+		return strconv.Quote(val)
+	case int:
+		return strconv.Quote(strconv.Itoa(val))
+	case int64:
+		return strconv.Quote(strconv.FormatInt(val, 10))
+	default:
+		return strconv.Quote(fmt.Sprintf("%v", val))
+	}
 }
 
-func ContainsElement[T Comparable](list []T, value T) bool {
-	for _, itemValue := range list {
-		if itemValue.Compare(value) {
+func Empty(input any) bool {
+	switch val := input.(type) {
+	case string:
+		if val == "" {
 			return true
 		}
-	}
-	return false
-}
-
-func Contains[T comparable](list []T, value T) bool {
-	for _, itemValue := range list {
-		if itemValue == value {
+		return false
+	default:
+		if val == nil {
 			return true
 		}
+		return false
 	}
-	return false
 }
 
-func ContainsItemsWithPrefix(list []string, value string) bool {
-	for _, itemValue := range list {
-		if strings.HasPrefix(value, itemValue) {
-			return true
-		}
-	}
-	return false
+func NotEmpty(input any) bool {
+	return !Empty(input)
 }
 
-func SliceIsEmpty[T comparable](list []T) bool {
-	return len(list) == 0
+func OrDefault(defaulVal string, input any) any {
+	if Empty(input) {
+		return defaulVal
+	}
+	return input
+}
+
+func OrEmpty(input any) any {
+	return OrDefault("", input)
+}
+
+func Ternary(condition bool, trueOut any, falseOut any) any {
+	if condition {
+		return trueOut
+	}
+	return falseOut
 }

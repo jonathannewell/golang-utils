@@ -23,7 +23,7 @@
  *
  */
 
-package golang_utils
+package cmd
 
 import (
 	"bytes"

@@ -28,7 +28,7 @@
  *
  */
 
-package golang_utils
+package text
 
 import (
 	"bytes"

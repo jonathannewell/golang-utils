@@ -28,7 +28,7 @@
  *
  */
 
-package golang_utils
+package io
 
 import (
 	"encoding/json"

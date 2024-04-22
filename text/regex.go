@@ -21,47 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * Filename: helpers.go
- * Last Modified: 11/14/23, 9:28 AM
+ * Filename: regex.go
+ * Last Modified: 10/26/23, 9:53 AM
  * Modified By: newellj
  *
  */
 
-package golang_utils
+package text
 
 import (
-	"math/rand"
-	"time"
+	"regexp"
+	"sync"
 )
 
-// ----------------------------------------- Helper Functions ---------------------------------------------------------
-
-func GetPointer[V any](value V) *V {
-	return &value
+type Regex struct {
+	Pattern string
+	Regex   *regexp.Regexp
+	lock    sync.Mutex
 }
 
-func GetConfigString(key string) string {
-	return CurrentState().config.Get(key)
+func NewRegex(pattern string) *Regex {
+	return &Regex{
+		Pattern: pattern,
+	}
 }
 
-func GetConfigBool(key string) bool {
-	return CurrentState().config.GetBool(key)
+func (r *Regex) Init() {
+
+	if r.Regex != nil {
+		return
+	}
+
+	r.lock.Lock()
+
+	r.Regex = regexp.MustCompile(r.Pattern)
+
+	r.lock.Unlock()
+
 }
 
-func GetConfigIntWithDefault(key string, defaultValue int) int {
-	return CurrentState().config.GetIntWithDefault(key, defaultValue)
-}
-
-func GetConfigList(key string) []string {
-	return CurrentState().config.GetList(key)
-}
-
-func GetConfigFloat(key string) float64 {
-	return CurrentState().config.GetFloat(key)
-}
-
-func RandomWaitMillis(max int) {
-	//Variable wait to start them all at slightly different times
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	time.Sleep(time.Duration(rand.Intn(max)) * time.Millisecond)
+func (r *Regex) Matches(target string) bool {
+	r.Init()
+	return r.Regex.MatchString(target)
 }

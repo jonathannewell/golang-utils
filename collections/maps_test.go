@@ -6,7 +6,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this analyzer and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, Merge, publish, distribute, sublicense, and/or sell
+ * to use, copy, modify, MapMerge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
@@ -28,7 +28,7 @@
  *
  */
 
-package golang_utils
+package collections
 
 import (
 	"testing"
@@ -49,14 +49,14 @@ const (
 )
 
 func TestCountKeys(t *testing.T) {
-	assert.Equal(t, 2, Count(createMap()), "Count is wrong", nil)
+	assert.Equal(t, 2, MapCount(createMap()), "MapCount is wrong", nil)
 }
 
 func TestMapMergeKeysInBaseAddedToResult(t *testing.T) {
 
 	//Simple Test
-	result := Merge(createMap(), nil)
-	assert.Equal(t, 2, Count(result), "Merged Count is wrong", nil)
+	result := MapMerge(createMap(), nil)
+	assert.Equal(t, 2, MapCount(result), "Merged MapCount is wrong", nil)
 	assert.Equal(t, value1, result[key1], "Key 1 value wrong", nil)
 	assert.Equal(t, value2, result[key2], "Key 2 value wrong", nil)
 }
@@ -68,8 +68,8 @@ func TestMapMergeWithOverriddenValues(t *testing.T) {
 	overrideMap[key3] = value3
 	overrideMap[key2] = val2over
 
-	result := Merge(baseMap, overrideMap)
-	assert.Equal(t, 4, Count(result), "Merged Count is wrong", nil)
+	result := MapMerge(baseMap, overrideMap)
+	assert.Equal(t, 4, MapCount(result), "Merged MapCount is wrong", nil)
 	assert.Equal(t, value1, result[key1], "Key 1 value wrong", nil)
 	assert.Equal(t, val2over, result[key2], "Key 2 value wrong", nil)
 	assert.Equal(t, value3, result[key3], "Key 3 value wrong", nil)
@@ -78,25 +78,25 @@ func TestMapMergeWithOverriddenValues(t *testing.T) {
 
 func TestMapGetString(t *testing.T) {
 	testMap := createMap()
-	result := GetString(key1, testMap)
+	result := GetStringFromMap(key1, testMap)
 
-	assert.NotNil(t, result, "Get string should return the requested value or empty string not nil!")
+	assert.NotNil(t, result, "GetValueFromMap string should return the requested value or empty string not nil!")
 	assert.Equal(t, value1, result, "Key1 should return Value1")
 
-	result = GetString("non-existent-key", testMap)
-	assert.NotNil(t, result, "Get string should return the requested value or empty string not nil!")
+	result = GetStringFromMap("non-existent-key", testMap)
+	assert.NotNil(t, result, "GetValueFromMap string should return the requested value or empty string not nil!")
 	assert.Equal(t, "", result, "Non existent key should return empty string")
 }
 
 func TestMapGet(t *testing.T) {
 	testMap := createMap()
-	result := Get(key1, testMap)
+	result := GetValueFromMap(key1, testMap)
 
-	assert.NotNil(t, result, "Get string should return the requested value or empty string not nil!")
+	assert.NotNil(t, result, "GetValueFromMap string should return the requested value or empty string not nil!")
 	assert.Equal(t, value1, result, "Key1 should return Value1")
 
-	result = GetString("non-existent-key", testMap)
-	assert.NotNil(t, result, "Get string should return the requested value or empty string not nil!")
+	result = GetStringFromMap("non-existent-key", testMap)
+	assert.NotNil(t, result, "GetValueFromMap string should return the requested value or empty string not nil!")
 	assert.Equal(t, "", result, "Non existent key should return empty string")
 
 }

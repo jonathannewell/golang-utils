@@ -27,9 +27,10 @@
  *
  */
 
-package golang_utils
+package cmd
 
 import (
+	"github.com/jonathannewell/golang-utils/app"
 	"github.com/spf13/cobra"
 )
 
@@ -139,11 +140,11 @@ func newCommand(config *CmdConfig) *cobra.Command {
 	if config.enableTracking {
 		if config.pre != nil {
 			newCmd.PreRun = func(cmd *cobra.Command, args []string) {
-				CurrentState().TrackCmd(cmd, args)
+				app.CurrentState().TrackCmd(cmd, args)
 				config.pre(cmd, args)
 			}
 		} else {
-			newCmd.PreRun = CurrentState().TrackCmd
+			newCmd.PreRun = app.CurrentState().TrackCmd
 		}
 	}
 
@@ -151,7 +152,7 @@ func newCommand(config *CmdConfig) *cobra.Command {
 }
 
 func MakeFlagRequired(cmd *cobra.Command, flagName string) {
-	CheckError(
+	app.CheckError(
 		cmd.MarkFlagRequired(flagName),
 		"Error marking flag [%s] as required for the %s cmd",
 		flagName,

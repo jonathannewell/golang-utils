@@ -27,7 +27,7 @@
  *
  */
 
-package golang_utils
+package app
 
 import (
 	"fmt"

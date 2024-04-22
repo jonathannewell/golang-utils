@@ -28,15 +28,17 @@
  *
  */
 
-package golang_utils
+package collections
 
 import (
 	"fmt"
-	"io"
+	coreio "io"
 	"path/filepath"
 	"strings"
 
 	"github.com/apex/log"
+	"github.com/jonathannewell/golang-utils/app"
+	"github.com/jonathannewell/golang-utils/io"
 	"gopkg.in/yaml.v3"
 )
 
@@ -58,7 +60,7 @@ type OverridableProperties struct {
 func NewOverridableProperties(filename string, path string) *OverridableProperties {
 	newConfig := &OverridableProperties{
 		FileName: filename,
-		Path:     GetAbsPath(path),
+		Path:     io.GetAbsPath(path),
 		Contents: make(Properties),
 		Children: make([]*OverridableProperties, 0),
 	}
@@ -88,12 +90,12 @@ func (c *OverridableProperties) Add(child *OverridableProperties) {
 }
 
 func (p Properties) Remove(key string) bool {
-	return Remove(key, p)
+	return RemoveFromMap(key, p)
 }
 
 func (c *OverridableProperties) GetOverriddenProperties() Properties {
 	if c.Parent != nil {
-		return Merge(c.Parent.GetOverriddenProperties(), c.Contents)
+		return MapMerge(c.Parent.GetOverriddenProperties(), c.Contents)
 	}
 	return c.Contents
 }
@@ -132,14 +134,14 @@ func NewPropertyManager() *PropertyManager {
 }
 
 func (p *PropertyManager) Has(path string) bool {
-	return HasKey(path, p.contents)
+	return MapHasKey(path, p.contents)
 }
 
 func (p *PropertyManager) Add(path string, props *OverridableProperties) {
 	log.Debugf(
 		"Adding props collection [core: %d total: %d path: %s",
-		Count(props.Contents),
-		Count(props.GetOverriddenProperties()),
+		MapCount(props.Contents),
+		MapCount(props.GetOverriddenProperties()),
 		path,
 	)
 	p.contents[path] = props
@@ -171,19 +173,19 @@ func (p *PropertyManager) GetFirstSetWithSuffix(suffix string) *OverridablePrope
 }
 
 func (p *PropertyManager) SetCount() int {
-	return Count(p.contents)
+	return MapCount(p.contents)
 }
 
 func LoadPropertiesMapYamlToMap(filename, path string, properties *Properties) {
 	log.Debugf("Attempting to read [%s] @ %s", filename, path)
-	fileInfo := NewFileInfo(filename, GetAbsPath(path))
+	fileInfo := io.NewFileInfo(filename, io.GetAbsPath(path))
 	if fileInfo.Exists() {
 		fileInfo.Open()
 		defer fileInfo.Close()
 		yamlDecoder := yaml.NewDecoder(fileInfo.FileHandle)
 		err := yamlDecoder.Decode(properties)
-		if err != io.EOF { //Ignore empty files or files with nothing but comments...not real errors~!
-			CheckError(err, "Failed Reading [%s]", fileInfo.AbsFilePath())
+		if err != coreio.EOF { //Ignore empty files or files with nothing but comments...not real errors~!
+			app.CheckError(err, "Failed Reading [%s]", fileInfo.AbsFilePath())
 		}
 	}
 }

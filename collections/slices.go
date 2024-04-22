@@ -1,10 +1,10 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2023 Jonathan Newell <jonnewell@mac.com>
+ * Copyright © 2022 Jonathan Newell <jonnewell@mac.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
+ * of this analyzer and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
@@ -15,52 +15,56 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * Filename: regex.go
- * Last Modified: 10/26/23, 9:53 AM
+ * Filename: lists.go
+ * Last Modified: 11/4/22, 11:34 AM
  * Modified By: newellj
+ *
  *
  */
 
-package golang_utils
+package collections
 
 import (
-	"regexp"
-	"sync"
+	"strings"
 )
 
-type Regex struct {
-	Pattern string
-	Regex   *regexp.Regexp
-	lock    sync.Mutex
+type Comparable interface {
+	Compare(value any) bool
 }
 
-func NewRegex(pattern string) *Regex {
-	return &Regex{
-		Pattern: pattern,
+func ContainsElement[T Comparable](list []T, value T) bool {
+	for _, itemValue := range list {
+		if itemValue.Compare(value) {
+			return true
+		}
 	}
+	return false
 }
 
-func (r *Regex) Init() {
-
-	if r.Regex != nil {
-		return
+func Contains[T comparable](list []T, value T) bool {
+	for _, itemValue := range list {
+		if itemValue == value {
+			return true
+		}
 	}
-
-	r.lock.Lock()
-
-	r.Regex = regexp.MustCompile(r.Pattern)
-
-	r.lock.Unlock()
-
+	return false
 }
 
-func (r *Regex) Matches(target string) bool {
-	r.Init()
-	return r.Regex.MatchString(target)
+func ContainsItemsWithPrefix(list []string, value string) bool {
+	for _, itemValue := range list {
+		if strings.HasPrefix(value, itemValue) {
+			return true
+		}
+	}
+	return false
+}
+
+func SliceIsEmpty[T comparable](list []T) bool {
+	return len(list) == 0
 }

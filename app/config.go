@@ -27,13 +27,14 @@
  *
  */
 
-package golang_utils
+package app
 
 import (
 	"fmt"
 	"path"
 
 	"github.com/apex/log"
+	"github.com/jonathannewell/golang-utils/collections"
 	"github.com/spf13/viper"
 )
 
@@ -42,10 +43,10 @@ type Configuration struct {
 	LoadedFrom  string
 	writeInHome bool
 	RunID       uint
-	defaults    Properties
+	defaults    collections.Properties
 }
 
-func NewConfiguration(filename string, writeInHome bool, defaults Properties) *Configuration {
+func NewConfiguration(filename string, writeInHome bool, defaults collections.Properties) *Configuration {
 	return &Configuration{
 		filename:    filename,
 		writeInHome: writeInHome,
@@ -87,7 +88,7 @@ func (c *Configuration) GetMap(propertyName string) map[string]string {
 }
 
 func (c *Configuration) HasResource(name string, property string) bool {
-	return Contains(c.GetList(property), name)
+	return collections.Contains(c.GetList(property), name)
 }
 
 func (c *Configuration) Update(propertyName string, value string) {
@@ -100,7 +101,7 @@ func (c *Configuration) UpdateList(propertyName string, value string) {
 	if current == nil {
 		current = make([]string, 0)
 	}
-	if !Contains(current, value) {
+	if !collections.Contains(current, value) {
 		current = append(current, value)
 	}
 	viper.Set(propertyName, current)
@@ -170,7 +171,7 @@ func (c *Configuration) Default() {
 }
 
 func (c *Configuration) Print() {
-	Print(viper.AllSettings(), "------ Portfolio Viewer Config Properties [%s] ------", c.LoadedFrom)
+	collections.PrintMap(viper.AllSettings(), "------ Portfolio Viewer Config Properties [%s] ------", c.LoadedFrom)
 }
 
 func (c *Configuration) readConfig() (err error) {
@@ -212,7 +213,7 @@ func (c *Configuration) setUpDefaults() (shouldWrite bool) {
 }
 
 func (c *Configuration) setConfigPaths() {
-	viper.AddConfigPath(".") //Look in current directory first!
+	viper.AddConfigPath(".")
 	viper.AddConfigPath(CurrentState().homeDir)
 	viper.SetConfigType("yaml")
 	viper.SetConfigName(c.filename)

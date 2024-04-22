@@ -6,7 +6,7 @@
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this analyzer and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, Merge, publish, distribute, sublicense, and/or sell
+ * to use, copy, modify, MapMerge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
@@ -28,7 +28,7 @@
  *
  */
 
-package golang_utils
+package collections
 
 import (
 	"fmt"
@@ -36,36 +36,36 @@ import (
 	"strings"
 )
 
-func HasKey[K comparable, V any](key K, target map[K]V) bool {
+func MapHasKey[K comparable, V any](key K, target map[K]V) bool {
 	if _, found := target[key]; found {
 		return true
 	}
 	return false
 }
 
-func AddIfNotExist[K comparable, V any](key K, value V, target map[K]V) {
-	if !HasKey(key, target) {
+func AddToMapIfNotExist[K comparable, V any](key K, value V, target map[K]V) {
+	if !MapHasKey(key, target) {
 		target[key] = value
 	}
 }
 
-func Get[K comparable, V any](key K, target map[K]V) V {
+func GetValueFromMap[K comparable, V any](key K, target map[K]V) V {
 	if value, has := target[key]; has {
 		return value
 	}
 	return *new(V)
 }
 
-func Remove[K comparable, V any](key K, target map[K]V) bool {
-	if HasKey(key, target) {
+func RemoveFromMap[K comparable, V any](key K, target map[K]V) bool {
+	if MapHasKey(key, target) {
 		delete(target, key)
 		return true
 	}
 	return false
 }
 
-func GetString(key string, target map[string]any) string {
-	found := Get(key, target)
+func GetStringFromMap(key string, target map[string]any) string {
+	found := GetValueFromMap(key, target)
 	if found != nil {
 		result, ok := found.(string)
 		if ok {
@@ -77,7 +77,7 @@ func GetString(key string, target map[string]any) string {
 	return ""
 }
 
-func Merge[K comparable, V any](baseMap map[K]V, overridingMap map[K]V) map[K]V {
+func MapMerge[K comparable, V any](baseMap map[K]V, overridingMap map[K]V) map[K]V {
 	if baseMap == nil {
 		if overridingMap == nil {
 			return make(map[K]V)
@@ -98,13 +98,13 @@ func Merge[K comparable, V any](baseMap map[K]V, overridingMap map[K]V) map[K]V 
 	return overridingMap
 }
 
-func AddAll[K comparable, V any](toMap map[K]V, fromMap map[K]V) {
+func MapAddAll[K comparable, V any](toMap map[K]V, fromMap map[K]V) {
 	for k, v := range fromMap {
 		toMap[k] = v
 	}
 }
 
-func Count[K comparable, V any](target map[K]V) (cnt int) {
+func MapCount[K comparable, V any](target map[K]V) (cnt int) {
 	if target == nil {
 		return
 	}
@@ -115,11 +115,11 @@ func Count[K comparable, V any](target map[K]V) (cnt int) {
 	return
 }
 
-func Print[K comparable, V any](target map[K]V, msg string, args ...any) {
-	PrintPadded(target, 0, msg, args...)
+func PrintMap[K comparable, V any](target map[K]V, msg string, args ...any) {
+	PrintMapPadded(target, 0, msg, args...)
 }
 
-func PrintPadded[K comparable, V any](target map[K]V, depth int, msg string, args ...any) {
+func PrintMapPadded[K comparable, V any](target map[K]V, depth int, msg string, args ...any) {
 	var builder strings.Builder
 	padd := strings.Repeat(" ", depth)
 	for k, v := range target {
