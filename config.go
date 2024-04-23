@@ -176,12 +176,15 @@ func (c *Configuration) Print() {
 func (c *Configuration) readConfig() (err error) {
 	if err = viper.ReadInConfig(); err == nil {
 		c.LoadedFrom = viper.ConfigFileUsed()
-		log.Debugf("Loaded config from [%s]", c.LoadedFrom)
+		log.Infof("Loaded config from [%s]", c.LoadedFrom)
 		if c.setUpDefaults() {
 			c.Write("updating config with missing defaults")
 		}
 	} else {
-		log.Debugf("No config file (%s) found in `.` or `user-home-dir`", c.filename)
+		log.Infof("No config file (%s) found in `.` or `user-home-dir`", c.filename)
+		if CurrentState().Verbose() {
+			log.Errorf("Error finding/reading config file [%s]. Details: %v", c.filename, err)
+		}
 		c.setUpDefaults()
 		c.LoadedFrom = "defaults"
 	}
