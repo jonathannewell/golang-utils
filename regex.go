@@ -52,7 +52,7 @@ func (r *Regex) IsValid() bool {
 	if r.Regex != nil {
 		return true
 	}
-	r.lock.Unlock()
+	r.lock.Lock()
 	var err error
 	r.Regex, err = regexp.Compile(r.Pattern)
 	if err != nil {
