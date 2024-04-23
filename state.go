@@ -219,8 +219,10 @@ func (s *State) DataDir() string {
 func (s *State) SetLogging(verbose bool) *State {
 	if verbose {
 		log.SetLevel(log.DebugLevel)
+		s.verbose = true
 	} else {
 		log.SetLevel(log.InfoLevel)
+		s.verbose = false
 	}
 	return s
 }
