@@ -32,6 +32,8 @@ package golang_utils
 import (
 	"regexp"
 	"sync"
+
+	"github.com/apex/log"
 )
 
 type Regex struct {
@@ -46,6 +48,21 @@ func NewRegex(pattern string) *Regex {
 	}
 }
 
+func (r *Regex) IsValid() bool {
+	if r.Regex != nil {
+		return true
+	}
+	r.lock.Unlock()
+	var err error
+	r.Regex, err = regexp.Compile(r.Pattern)
+	if err != nil {
+		log.Errorf("Invalid Regex [%s]. Details: %v", r.Pattern, err)
+		return false
+	}
+	r.lock.Unlock()
+	return true
+}
+
 func (r *Regex) Init() {
 
 	if r.Regex != nil {
@@ -54,7 +71,7 @@ func (r *Regex) Init() {
 
 	r.lock.Lock()
 
-	r.Regex = regexp.MustCompile(r.Pattern)
+	r.Regex = regexp.MustCompile(r.Pattern) //Will throw panic!
 
 	r.lock.Unlock()
 
