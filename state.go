@@ -278,6 +278,9 @@ func (s *State) UpdateState(name string, value any) *State {
 	//Mutate State
 	s.Lock()
 	defer s.Unlock()
+	if s.properties == nil {
+		s.properties = make(map[string]any)
+	}
 	s.properties[name] = value
 	return s
 }
