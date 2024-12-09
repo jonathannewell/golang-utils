@@ -275,35 +275,34 @@ func (s *State) FullCommand() string {
 }
 
 func (s *State) UpdateState(name string, value any) *State {
-
 	//Mutate State
 	s.Lock()
-	_, has := s.properties[name]
+	defer s.Unlock()
 	s.properties[name] = value
-	s.Unlock()
-
-	//Send State Change Events for interested parties
-	if has {
-		//State Update
-	} else {
-		//State Created
-	}
-
 	return s
 }
 
 func (s *State) RemoveFromState(name string) *State {
 	s.Lock()
+	defer s.Unlock()
 	if s.properties.Remove(name) {
 		//Send Deleted Event
 	}
-	s.Unlock()
 	return s
 }
 
 func (s *State) UpdateConfigProperty(property, value string) *State {
 	s.config.Update(property, value)
 	return s
+}
+
+func (s *State) GetFromState(name string) any {
+	s.Lock()
+	defer s.Unlock()
+	if v, ok := s.properties[name]; ok {
+		return v
+	}
+	return nil
 }
 
 func (s *State) InitConfig(defaults Properties) *State {
