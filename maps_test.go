@@ -31,9 +31,8 @@
 package golang_utils
 
 import (
-	"testing"
-
 	"github.com/tj/assert"
+	"testing"
 )
 
 const (

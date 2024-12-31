@@ -31,7 +31,6 @@ package golang_utils
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/apex/log"
@@ -52,13 +51,15 @@ func LogErrorTrace(err error, msg string, args ...any) {
 func CheckError(err error, msg string, args ...any) {
 	if err != nil {
 		log.Error(formatError(err, msg, args...))
-		os.Exit(1)
+		SendErrorEvent("util.CheckError", err, msg, args...)
 	}
 }
 
 func ThrowError(msg string, args ...any) {
-	log.Error(formatError(nil, msg, args...))
-	os.Exit(1)
+	err := fmt.Errorf(msg, args...)
+	log.Error(err.Error())
+	SendErrorEvent("util.ThrowError", err, "Programmatically Thrown Error")
+	panic(err)
 }
 
 func formatError(err error, msg string, args ...any) (errorString string) {

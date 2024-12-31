@@ -89,7 +89,7 @@ type State struct {
 	PersistenceContext *PersistenceContext
 }
 
-type Event struct {
+type ApplicationEvent struct {
 	Name     string
 	Type     string
 	Category string
@@ -289,7 +289,7 @@ func (s *State) RemoveFromState(name string) *State {
 	s.Lock()
 	defer s.Unlock()
 	if s.properties.Remove(name) {
-		//Send Deleted Event
+		//Send Deleted ApplicationEvent
 	}
 	return s
 }
