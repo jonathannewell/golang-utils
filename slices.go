@@ -68,3 +68,9 @@ func ContainsItemsWithPrefix(list []string, value string) bool {
 func SliceIsEmpty[T comparable](list []T) bool {
 	return len(list) == 0
 }
+
+func Reverse[T any](s []T) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+}

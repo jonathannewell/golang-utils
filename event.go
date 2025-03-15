@@ -110,8 +110,9 @@ func (r *Registration) uniqueName() string {
 type Handler func(event Event) error
 type RegistrationHandlers map[string]*Registration
 type Bus struct {
-	handlers RegistrationHandlers
-	sent     int
+	handlers             RegistrationHandlers
+	sent                 int
+	hasDeadLetterHandler bool
 }
 
 func newBus() *Bus {
@@ -121,6 +122,15 @@ func newBus() *Bus {
 }
 
 func (b *Bus) Register(filter string, emptyEvent Event, handler Handler) {
+	if emptyEvent == nil {
+		return
+	}
+
+	eType := reflect.TypeOf(emptyEvent)
+
+	if reflect.TypeOf(NewEmptyDeadLetterEvent()) == eType {
+		b.hasDeadLetterHandler = true
+	}
 	b.RegisterHandler(NewRegistration(filter, emptyEvent, handler))
 }
 
@@ -162,14 +172,14 @@ func (b *Bus) Send(event Event) {
 						},
 					)
 				} //End handler loop
-				if err := eg.Wait(); err != nil {
+				if err := eg.Wait(); err != nil && b.hasDeadLetterHandler {
 					b.Send(NewDeadLetterEvent(event, err, missedHandlers))
 				}
 			}
 		}
 	}
 
-	if sentCnt < 2 {
+	if sentCnt < 1 && b.hasDeadLetterHandler {
 		b.Send(NewDeadLetterEvent(event, fmt.Errorf("No handler(s) for event %s found", event.Name()), nil))
 	}
 
