@@ -30,11 +30,52 @@
 package golang_utils
 
 import (
+	"context"
+	"fmt"
 	"github.com/apex/log"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"time"
 )
+
+// LogLevel log level
+type LogLevel int
+type dBJournalMode struct {
+	OFF      int
+	WAL      int
+	DELETE   int
+	TRUNCATE int
+	PERSIST  int
+	MEMORY   int
+}
+
+var JournalMode = dBJournalMode{
+	OFF:      jrnl_off,
+	WAL:      jrnl_wal,
+	DELETE:   jrnl_delete,
+	TRUNCATE: jrnl_truncate,
+	PERSIST:  jrnl_persist,
+	MEMORY:   jrnl_memory,
+}
+
+const (
+	jrnl_off int = iota
+	jrnl_wal
+	jrnl_delete
+	jrnl_truncate
+	jrnl_persist
+	jrnl_memory
+)
+
+// Interface logger interface
+type Interface interface {
+	LogMode(LogLevel) Interface
+	Info(context.Context, string, ...interface{})
+	Warn(context.Context, string, ...interface{})
+	Error(context.Context, string, ...interface{})
+	Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error)
+}
 
 type PersistenceContext struct {
 	DB     *gorm.DB //Do I really need this?
@@ -46,6 +87,36 @@ type PersistenceConfig struct {
 	Name     string
 	Path     string
 	Entities []any
+	// GORM perform single create, update, delete operations in transactions by default to ensure database data integrity
+	// You can disable it by setting `SkipDefaultTransaction` to true
+	SkipDefaultTransaction bool
+	// FullSaveAssociations full save associations
+	FullSaveAssociations bool
+	// Logger
+	Logger logger.Interface
+	// NowFunc the function to be used when creating a new timestamp
+	NowFunc func() time.Time
+	// DryRun generate sql without execute
+	DryRun bool
+	// PrepareStmt executes the given query in cached statement
+	PrepareStmt bool
+	// DisableAutomaticPing
+	DisableAutomaticPing bool
+	// DisableForeignKeyConstraintWhenMigrating
+	DisableForeignKeyConstraintWhenMigrating bool
+	// IgnoreRelationshipsWhenMigrating
+	IgnoreRelationshipsWhenMigrating bool
+	// DisableNestedTransaction disable nested transaction
+	DisableNestedTransaction bool
+	// AllowGlobalUpdate allow global update
+	AllowGlobalUpdate bool
+	// QueryFields executes the SQL query with all fields of the table
+	QueryFields bool
+	// CreateBatchSize default create batch size
+	CreateBatchSize int
+	// TranslateError enabling error translation
+	TranslateError bool
+	JournalMode    int
 }
 
 func NewPersistenceContext(config *PersistenceConfig) *PersistenceContext {
@@ -58,9 +129,26 @@ func NewPersistenceContext(config *PersistenceConfig) *PersistenceContext {
 
 func NewPersistenceConfig(dbName, path string, entities []any) *PersistenceConfig {
 	return &PersistenceConfig{
-		Name:     dbName,
-		Path:     path,
-		Entities: entities,
+		Name:                   dbName,
+		Path:                   path,
+		Entities:               entities,
+		Logger:                 logger.Default.LogMode(logger.Silent),
+		PrepareStmt:            true,
+		SkipDefaultTransaction: true,
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+		DryRun:                                   false,
+		IgnoreRelationshipsWhenMigrating:         false,
+		DisableNestedTransaction:                 true,
+		AllowGlobalUpdate:                        true,
+		DisableForeignKeyConstraintWhenMigrating: true,
+		DisableAutomaticPing:                     true,
+		QueryFields:                              true,
+		CreateBatchSize:                          100,
+		TranslateError:                           false,
+		FullSaveAssociations:                     true,
+		JournalMode:                              jrnl_delete,
 	}
 }
 
@@ -71,11 +159,7 @@ func (c *PersistenceContext) OpenDB() {
 
 	c.DB, err = gorm.Open(
 		sqlite.Open(c.DBFile.AbsFilePath()),
-		&gorm.Config{
-			Logger:                 logger.Default.LogMode(logger.Silent),
-			PrepareStmt:            false,
-			SkipDefaultTransaction: true,
-		},
+		c.config.gormConfig(),
 	)
 
 	CheckError(err, "Error opening Database @ [%s]", c.DBFile.AbsFilePath())
@@ -90,8 +174,6 @@ func (c *PersistenceContext) InitDB() {
 		),
 		"error initializing DB schema",
 	)
-
-	//c.DB.Raw("PRAGMA journal_mode=WAL;")
 
 }
 
@@ -128,4 +210,44 @@ func (c *PersistenceContext) OmitFields(omitted ...string) *gorm.DB {
 }
 
 func (c *PersistenceContext) PopulateReferenceData() {
+}
+
+func (config *PersistenceConfig) gormConfig() *gorm.Config {
+	return &gorm.Config{
+		SkipDefaultTransaction:                   config.SkipDefaultTransaction,
+		FullSaveAssociations:                     config.FullSaveAssociations,
+		Logger:                                   config.Logger,
+		NowFunc:                                  config.NowFunc,
+		DryRun:                                   config.DryRun,
+		PrepareStmt:                              config.PrepareStmt,
+		DisableAutomaticPing:                     config.DisableAutomaticPing,
+		DisableForeignKeyConstraintWhenMigrating: config.DisableForeignKeyConstraintWhenMigrating,
+		IgnoreRelationshipsWhenMigrating:         config.IgnoreRelationshipsWhenMigrating,
+		DisableNestedTransaction:                 config.DisableNestedTransaction,
+		AllowGlobalUpdate:                        config.AllowGlobalUpdate,
+		QueryFields:                              config.QueryFields,
+		CreateBatchSize:                          config.CreateBatchSize,
+		TranslateError:                           config.TranslateError,
+	}
+
+}
+
+func (c *PersistenceContext) setJournalMode() {
+	var mode string
+	switch c.config.JournalMode {
+	case jrnl_off:
+		mode = "OFF"
+	case jrnl_wal:
+		mode = "WAL"
+	case jrnl_truncate:
+		mode = "TRUNCATE"
+	case jrnl_persist:
+		mode = "PERSIST"
+	case jrnl_memory:
+		mode = "MEMORY"
+	default:
+		mode = "DELETE"
+	}
+
+	c.DB.Raw(fmt.Sprintf("PRAGMA journal_mode=%s;", mode))
 }
